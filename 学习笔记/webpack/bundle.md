@@ -31,6 +31,7 @@
 #### 补充知识点
 1. [webpack的执行流程](https://segmentfault.com/a/1190000015088834?utm_source=tag-newest#articleHeader3)
 2. [如何编写一个loader](https://segmentfault.com/a/1190000012718374)
+3. [手把手教你撸一个 Webpack Loader](https://blog.csdn.net/lszy16/article/details/79162960)
 
 #### 涉及修改内容
 1. 需规范我们的页面导出方式
