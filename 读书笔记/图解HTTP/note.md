@@ -35,6 +35,125 @@ TCP/IP协议族分层管理：
 
 URI: 统一资源标识符。
 
+
+## 第3章
+HTTP通信过程包括从客户端发往服务器端的请求及从服务器端返回客户端的响应。
+### HTTP报文
+- 请求报文
+    - 报文首部
+        - 请求行：包含请求方法、请求URI、HTTP版本（GET /login HTTP1.1）
+        - 首部字段
+            - 请求首部字段
+            - 通用首部字段
+            - 实体首部字段
+        - 其他
+    - 空行（CR+LF）
+    - 报文主体
+- 响应报文
+    - 报文首部
+        - 状态行：包含状态码、原因短句、HTTP版本（HTTP/1.1 200 ok）
+        - 首部字段
+            - 响应首部字段
+            - 通用首部字段
+            - 实体首部字段
+        - 其他
+    - 空行（CR+LF）
+    - 报文主体
+
+### 编码提升传输速率
+HTTP传输数据进行编码传输
+- 优点：提升传输速率
+- 缺点：编码的操作需要计算机完成，会消耗更多的CPU资源
+
+编码方式：
+- 压缩传输的内容编码：指明应用在实体内容上的编码格式进行压缩传送，客户端接收后解码。
+    - gzip（GUN zip）
+    - compress（UNIX 系统的标准压缩）
+    - deflate（zlib）
+    - identity（不进行编码）
+- 分割发送的分块传输编码
+    将实体主体分成多个部分（块），每一块都会用十六进制来标记块的大小，最后一块使用“0(CR+LF)”来标记
+
+### 发送多种数据的多部分对象集合
+多部分对象集合包含的对象如下：
+- multipart/form-data
+```
+Content-Type: multipart/form-data; boundary=AaB03x
+
+--AaB03x
+Content-Disposition: form-data; name="field1"
+
+--AaB03x
+Content-Disposition: form-data; name="pics"; filename="file1.txt"
+Content-Type: text/plain
+
+--AaB03x--
+```
+- multipart/byteranges
+```
+Content-Type: multipart/byteranges; boundary=THIS_STRING_SEPARATES
+
+<!-- 实体1 -->
+--THIS_STRING_SEPARATES
+Content-Type: application/pdf
+Content-Range: bytes 500-999/8000
+
+<!-- 实体2 -->
+--THIS_STRING_SEPARATES
+Content-Type: application/pdf
+Content-Range: bytes 7000-7999/8000
+
+--THIS_STRING_SEPARATES--
+```
+使用 boundary 字段来多部分对象集合指明的各类实体。
+
+### 获取部分内容的范围请求
+断点传输。主要通过首部字段添加 Range：
+```
+GET /tip.jpg HTTP1.1
+Range: bytes=5001-10000
+```
+```
+HTTP/1.1 206 Partial Content
+Content-Range: bytes 5001-10000/10000
+Content-length: 5000
+Content-Type: image/jpeg
+```
+针对范围请求，响应会返回 206 Partial Content 的响应报文。
+__如果服务器无法响应范围请求，则会返回状态码200OK和完整的实体内容__
+
+### 内容协商
+内容协商技术包括：
+- 服务器驱动协商 - 根据请求首部字段分析返回的资源内容，如中英文。
+    - Accept
+    - Accept-Charset
+    - Accept-Encoding
+    - Accept-Language
+    - Content-Language
+- 客户端驱动协商 - 用户从浏览器的可选项进行选择
+- 透明协商 - 由服务端和客户端各自进行内容协商
+
+## 第4章 返回结果的HTTP状态码
+- 1XX - Informational，接收的请求正在处理
+- 2XX - Success，请求正常处理完毕
+    - 200 OK，请求处理成功
+    - 204 No Content，返回的响应报文中不含实体的主题部分，一般用于客户端网服务端发送信息，而客户端不需要新信息
+    - 206 Partial Content，范围请求
+- 3XX - Redirection，需要进行附加操作以完成请求
+    - 301 Moved Permanently，永久重定向
+    - 302 Found，临时重定向
+    - 303 See Other，类似于302，由于请求对应的资源存在着另一个URI，应使用GET方法定向获取请求的资源。__可能建议将POST改为GET请求__
+    - 304 Not Modified，当请求附带条件时（If-），而服务端判断请求不满足条件
+    - 307 Temporary Redirect，类似于302，但比302严格：禁止POST改为GET
+- 4XX - Client Error，服务器无法处理请求
+    - 400 Bad Request，请求报文中存在语法错误
+    - 401 Unauthorized，表示该请求需要有通过HTTP认证的认证信息
+    - 403 Forbidden，服务端拒绝请求
+    - 404 Not Founnd，找不到请求资源
+- 5XX - Server Error，服务器处理请求出错
+    - 500 Internal Server Error，表示服务端在执行时发生了错误
+    - 503 Service Unavailable，服务器正忙或在维护，无法处理请求
+
 ## 第7章 确保Web安全的HTTPS
 ### 认识HTTPS
 HTTP不足之处：
